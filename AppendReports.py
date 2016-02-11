@@ -21,6 +21,7 @@ l = open(r'U:\Projects\Telecom\_lmsReports.csv', 'a')
 o = open(r'U:\Projects\Telecom\_opReports.csv', 'a')
 w = open(r'U:\Projects\Telecom\_wsReports.csv', 'a')
 v = open(r'U:\Projects\Telecom\_vdnReports.csv', 'a')
+log = open(r'U:\Projects\Telecom\_loginReports.csv', 'a')
 
 # Removes quotes and inserts space between end times and AM/PM
 def splitClean(text):
@@ -38,6 +39,15 @@ def vdnClean(text):
     text = text.replace('0AM','0 AM')
     newText = text.replace('0PM','0 PM')
   
+    return newText
+
+def logClean(text):
+    text = text.replace('\" \",','')
+    text = text.replace('\"\",','')
+    text = text.replace('\"','')
+    text = text.replace('AM',' AM')
+    newText = text.replace('PM',' PM')
+
     return newText
 
 # Change date to yyyy/mm/dd format
@@ -121,6 +131,7 @@ def timeClean(text):
 # Writes column headers. This only needs to be done per composite file.
 ##splitHeader = 'Date,StartTime,StopTime,Avg Speed Ans,Avg Aban Time,ACD Calls,Avg ACD Time,Avg ACW Time,Aban Calls,Max Delay,Flow In,Flow Out,Extn Out Calls,Avg Extn Out Time,Dequeued Calls,Avg Time to Dequeue,Percent ACD Time,Percent Ans Calls,Avg Pos Staff,Calls Per Pos\n'
 ##vdnHeader = 'Date,StartTime,StopTime,Vector,Inbound Calls,Flow In,ACD Calls,Avg Speed Ans,Avg ACD Time,Avg ACW Time,Main ACD Calls,Backup ACD Calls,Connect Calls,Avg Connect Time,Aban Calls,Avg Aban Time,Forced Busy Calls,Forced Disc Calls,Flow Out,Avg VDN Time\n'
+##logHeader = 'Agent','Extn','LoginTime','LogoutTime','Logoutdate'
 ##
 ##a.write(splitHeader)
 ##i.write(splitHeader)
@@ -128,18 +139,19 @@ def timeClean(text):
 ##o.write(splitHeader)
 ##w.write(splitHeader)
 ##v.write(vdnHeader)
+##log.write(logHeader)
 
 # Loop through files in a directory and process them according to the first letter of the filename
 for dirName, subdirList, fileList in os.walk(src):
     for filename in fileList:     
         with open (os.path.join(os.getcwd(), dirName, filename), 'r') as f:
-            charTest = filename[0]
+            charTest = filename[0:1]
             
             for line in f:
-                if charTest in ['_', 'S']:
+                if charTest[0] in ['_', 'S']:
                     pass
             
-                elif charTest in ('A','I','L','O','W'):
+                elif charTest in ('AV','IT','LM','Op', 'Wo'):
                     line = splitClean(line)
                     lineTest = line[0]
 
@@ -175,7 +187,7 @@ for dirName, subdirList, fileList in os.walk(src):
                             print("Something went wrong in writing lines to files for", filename)
                             input('Press any key to continue.')
                     
-                elif charTest in ('V'):
+                elif charTest in ('VD'):
                     line = vdnClean(line)
                     lineTest = line[0]
 
@@ -193,8 +205,14 @@ for dirName, subdirList, fileList in os.walk(src):
 
                         v.write(line)
                         
-                elif charTest == 'T':
+                elif charTest in ['Te']:
                     pass
+
+                elif charTest in ['Lo']:
+                    line = logClean(line)
+
+                    log.write(line)
+                    
                 
                 else:
                     print('Something went wrong in choosing a processing path for', filename)
@@ -214,6 +232,7 @@ l.close()
 o.close()
 w.close()
 v.close()
+log.close()
 
 # Copy composite files to other directories
 ##os.chdir(dst1)
