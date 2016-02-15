@@ -23,7 +23,7 @@ w = open(r'U:\Projects\Telecom\_wsReports.csv', 'a')
 v = open(r'U:\Projects\Telecom\_vdnReports.csv', 'a')
 log = open(r'U:\Projects\Telecom\_loginReports.csv', 'a')
 
-# Removes quotes and inserts space between end times and AM/PM
+# Basic formatting and text cleanup for Split reports
 def splitClean(text):
     text = text.replace(',\"-\",',',')
     text = text.replace('\"','')
@@ -32,6 +32,7 @@ def splitClean(text):
 
     return newText
 
+# Basic formatting and text cleanup for VDN reports
 def vdnClean(text):
     text = text.replace('\"','')
     text = text.replace(',-','')
@@ -41,6 +42,7 @@ def vdnClean(text):
   
     return newText
 
+# Basic formatting and text cleanup for Login reports
 def logClean(text):
     text = text.replace('\" \",','')
     text = text.replace('\"\",','')
@@ -48,6 +50,14 @@ def logClean(text):
     text = text.replace('AM',' AM')
     newText = text.replace('PM',' PM')
 
+    return newText
+
+# Inserts the report date in each line of the Login report
+def logDate(text, date):
+    text = text.split(',')
+    text.insert(3, date)
+
+    newText = ','.join(text)
     return newText
 
 # Change date to yyyy/mm/dd format
@@ -131,7 +141,7 @@ def timeClean(text):
 # Writes column headers. This only needs to be done per composite file.
 ##splitHeader = 'Date,StartTime,StopTime,Avg Speed Ans,Avg Aban Time,ACD Calls,Avg ACD Time,Avg ACW Time,Aban Calls,Max Delay,Flow In,Flow Out,Extn Out Calls,Avg Extn Out Time,Dequeued Calls,Avg Time to Dequeue,Percent ACD Time,Percent Ans Calls,Avg Pos Staff,Calls Per Pos\n'
 ##vdnHeader = 'Date,StartTime,StopTime,Vector,Inbound Calls,Flow In,ACD Calls,Avg Speed Ans,Avg ACD Time,Avg ACW Time,Main ACD Calls,Backup ACD Calls,Connect Calls,Avg Connect Time,Aban Calls,Avg Aban Time,Forced Busy Calls,Forced Disc Calls,Flow Out,Avg VDN Time\n'
-##logHeader = 'Agent','Extn','LoginTime','LogoutTime','Logoutdate'
+##logHeader = 'Dept,Agent,Extn,LoginTime,LoginDate,LogoutTime,LogoutDate\n'
 ##
 ##a.write(splitHeader)
 ##i.write(splitHeader)
@@ -151,7 +161,7 @@ for dirName, subdirList, fileList in os.walk(src):
                 if charTest[0] in ['_', 'S']:
                     pass
             
-                elif charTest in ('AV','IT','LM','Op', 'Wo'):
+                elif charTest in ('AV','IT','LM','Op','Wo'):
                     line = splitClean(line)
                     lineTest = line[0]
 
@@ -165,23 +175,20 @@ for dirName, subdirList, fileList in os.walk(src):
                         line = timeClean(line)
                         line = theDate + ',' + line
 
-                        if charTest == 'A':
+                        if charTest == 'AV':
                             a.write(line)
 
-                        elif charTest == 'I':
+                        elif charTest == 'IT':
                             i.write(line)
 
-                        elif charTest == 'L':
+                        elif charTest == 'LM':
                             l.write(line)
 
-                        elif charTest == 'O':
+                        elif charTest == 'Op':
                             o.write(line)
 
-                        elif charTest == 'W':
+                        elif charTest == 'Wo':
                             w.write(line)
-
-                        elif charTest == 'V':
-                            pass
                         
                         else:
                             print("Something went wrong in writing lines to files for", filename)
@@ -205,14 +212,26 @@ for dirName, subdirList, fileList in os.walk(src):
 
                         v.write(line)
                         
-                elif charTest in ['Te']:
+                elif charTest == 'Te':
                     pass
 
-                elif charTest in ['Lo']:
+                elif charTest in ['20']:
                     line = logClean(line)
+                    lineTest = line[0]
 
-                    log.write(line)
-                    
+                    if lineTest in ['A', 'H', 'T', 'd', '\n']:
+                        pass
+
+                    elif lineTest in ['S']:
+                        theDept = line[7:len(line) - 1]
+
+                    elif lineTest in ['D']:
+                        theDate = line[6:len(line) - 1]
+
+                    else:
+                        line = logDate(line, theDate)
+                        line = theDept + ',' + line                     
+                        log.write(line)
                 
                 else:
                     print('Something went wrong in choosing a processing path for', filename)
