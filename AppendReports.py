@@ -155,7 +155,7 @@ def timeClean(text):
 for dirName, subdirList, fileList in os.walk(src):
     for filename in fileList:     
         with open (os.path.join(os.getcwd(), dirName, filename), 'r') as f:
-            charTest = filename[0:1]
+            charTest = filename[0:2]
             
             for line in f:
                 if charTest[0] in ['_', 'S']:
