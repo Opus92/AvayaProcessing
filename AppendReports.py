@@ -16,11 +16,13 @@ dst1 = r'P:\IT-SS-OA'
 
 # Create and open composite files for processed data
 a = open(r'U:\Projects\Telecom\_avReports.csv', 'a')
+h = open(r'U:\Projects\Telecom\_hscReports.csv', 'a')
 i = open(r'U:\Projects\Telecom\_ithdReports.csv', 'a')
 l = open(r'U:\Projects\Telecom\_lmsReports.csv', 'a')
 o = open(r'U:\Projects\Telecom\_opReports.csv', 'a')
 w = open(r'U:\Projects\Telecom\_wsReports.csv', 'a')
 v = open(r'U:\Projects\Telecom\_vdnReports.csv', 'a')
+vh = open(r'U:\Projects\Telecom\_vdnhealthReports.csv', 'a')
 log = open(r'U:\Projects\Telecom\_loginReports.csv', 'a')
 
 # Basic formatting and text cleanup for Split reports
@@ -37,6 +39,7 @@ def vdnClean(text):
     text = text.replace('\"','')
     text = text.replace(',-','')
     text = text.replace('M,475,','M,')
+    text = text.replace('M,182,','M,')
     text = text.replace('0AM','0 AM')
     newText = text.replace('0PM','0 PM')
   
@@ -144,24 +147,26 @@ def timeClean(text):
 ##logHeader = 'Dept,Agent,Extn,LoginTime,LoginDate,LogoutTime,LogoutDate\n'
 ##
 ##a.write(splitHeader)
+##h.write(splitHeader)
 ##i.write(splitHeader)
 ##l.write(splitHeader)
 ##o.write(splitHeader)
 ##w.write(splitHeader)
 ##v.write(vdnHeader)
+##vh.write(vdnHeader)
 ##log.write(logHeader)
 
 # Loop through files in a directory and process them according to the first letter of the filename
 for dirName, subdirList, fileList in os.walk(src):
     for filename in fileList:     
         with open (os.path.join(os.getcwd(), dirName, filename), 'r') as f:
-            charTest = filename[0:2]
+            charTest = filename[0:4]
             
             for line in f:
                 if charTest[0] in ['_', 'S']:
                     pass
             
-                elif charTest in ('AV','IT','LM','Op','Wo'):
+                elif charTest[0:2] in ('AV','HS','IT','LM','Op','Wo'):
                     line = splitClean(line)
                     lineTest = line[0]
 
@@ -175,26 +180,29 @@ for dirName, subdirList, fileList in os.walk(src):
                         line = timeClean(line)
                         line = theDate + ',' + line
 
-                        if charTest == 'AV':
+                        if charTest[0:2] == 'AV':
                             a.write(line)
 
-                        elif charTest == 'IT':
+                        elif charTest[0:2] == 'HS':
+                            h.write(line)
+
+                        elif charTest[0:2] == 'IT':
                             i.write(line)
 
-                        elif charTest == 'LM':
+                        elif charTest[0:2] == 'LM':
                             l.write(line)
 
-                        elif charTest == 'Op':
+                        elif charTest[0:2] == 'Op':
                             o.write(line)
 
-                        elif charTest == 'Wo':
+                        elif charTest[0:2] == 'Wo':
                             w.write(line)
                         
                         else:
                             print("Something went wrong in writing lines to files for", filename)
                             input('Press any key to continue.')
                     
-                elif charTest in ('VD'):
+                elif charTest[0:4] in ('VDN_'):
                     line = vdnClean(line)
                     lineTest = line[0]
 
@@ -211,6 +219,24 @@ for dirName, subdirList, fileList in os.walk(src):
                         line = theDate + ',' + line
 
                         v.write(line)
+                        
+                elif charTest[0:4] in ('VDNH'):
+                    line = vdnClean(line)
+                    lineTest = line[0]
+
+                    if lineTest in ['H', 'T', 'V', 'd', '\n']:
+                        pass
+                    
+                    elif lineTest in ['D']:
+                        theDate = line[6:len(line) - 1]
+                        theDate = dateClean(theDate)
+                        
+                    else:
+                        line = vdnClean(line)
+                        line = timeClean(line)
+                        line = theDate + ',' + line
+
+                        vh.write(line)
                         
                 elif charTest == 'Te':
                     pass
@@ -246,11 +272,13 @@ input('Press any key to continue.')
 
 # Close composite files
 a.close()
+h.close()
 i.close()
 l.close()
 o.close()
 w.close()
 v.close()
+vh.close()
 log.close()
 
 # Copy composite files to other directories
